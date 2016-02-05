@@ -2,10 +2,12 @@
 Todos = new Mongo.Collection('todos');
 
 if (Meteor.isClient) {
+    Meteor.subscribe('todos');
     // Template Helpers
     Template.main.helpers({
         todos: function(){
-            return Todos.find({},{sort:{createdAt:-1}});
+            //return Todos.find({ userId: Meteor.userId() },{sort:{createdAt:-1}}); //in client side use Meteor on server use this
+            return Todos.find({  },{sort:{createdAt:-1}}); //in client side use Meteor on server use this
         }
     });
 
@@ -23,7 +25,7 @@ if (Meteor.isClient) {
             return false;
         },
         "click .toggle-check": function () {
-            Meteor.call('setChecked',  this.id, !this.checked);
+            Meteor.call('setChecked',  this._id, !this.checked);
         },
         "click .delete-todo": function () {
             if(confirm('Are you sure?')){
@@ -37,9 +39,19 @@ if (Meteor.isClient) {
     });
 }
 
+if (Meteor.isServer) {
+    Meteor.publish('todos', function(){
+        if (!this.userId){
+            return Todos.find();
+        }else {
+            return Todos.find({userId: this.userId});
+        }
+    })
+}
+
 Meteor.methods({
     addTodo: function (text) {
-        if (Meteor.userId()){
+        if (!Meteor.userId()){
             throw new Meteor.Error('not-authorized');
         }
         Todos.insert({
@@ -53,10 +65,6 @@ Meteor.methods({
         Todos.remove(todoId);
     },
     setChecked: function (todoId, setChecked) {
-        Todos.update(todoId,{$set:{checked: !setChecked}});
+        Todos.update(todoId,{$set:{checked: setChecked}});
     }
 });
-
-if (Meteor.isServer) {
-
-}
