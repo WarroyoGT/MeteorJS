@@ -13,4 +13,8 @@ Router.map(function () {
         path:'/about',
         template: 'about'
     });
+    this.route('profile',{
+        path:'/profile',
+        template: 'profile'
+    });
 });
